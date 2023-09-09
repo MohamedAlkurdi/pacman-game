@@ -1,0 +1,546 @@
+App.js:
+  
+  // toggeling between awake=true and awake=false 
+  // useEffect(() => {
+  //   let j = 5;
+  //   console.log(target);
+  //   // setMatrix(fakeMatrix)
+  //   const interval = setInterval(() => {
+  //     setAwake((prevAwake) => {
+  //       const newMatrix = [...Matrix];
+  //       if (prevAwake) {
+  //         console.log('awake');
+  //         for(let i=0;i<4;i++){
+  //         newMatrix[target[i].x][target[i].y] = j++;
+  //         }
+  //       } else {
+  //         console.log('sleeping');
+  //         for(let i=0;i<4;i++){
+  //           newMatrix[target[i].x][target[i].y] = 4;
+  //         }
+  //       }
+  //       setMatrix(newMatrix);
+  //       j=5;
+  //       return !prevAwake;
+  //     });
+  //   }, 3000);
+  //   return () => clearInterval(interval);
+  // }, [awake]);
+// extractiong the ghosts positions from the matrix
+  const target = flattenedArray.reduce((indices, e, index) => {
+    if (e ===4|| e === 5 || e === 6 || e === 7 || e === 8) {
+      indices.push(converTo2d(index));
+    }
+    return indices;
+  }, []);
+    function converTo2d(number){
+  let x;
+  let y;
+  y = number % 20;
+  for( x =0;number>20;x++){
+    number -= 20;
+  }
+  return {x,y};
+  }
+
+  ghost random movement algoritm attepmts:
+  import red from './red.gif'
+import orange from './orange.gif'
+import pink from './pink.gif'
+import blue from './blue.gif'
+import sleep from './sleep.gif'
+import { useState,useEffect,useContext,useMemo } from 'react'
+import {directionContext} from './directionContext'
+
+export default function GhostCharacter({type,x,y}){
+    x= +x;
+    y= +y;
+    const {Matrix,updateMatrix} = useContext(directionContext); // matrix state passed using context 
+    const [initialPosition, setInitialPosition] = useState({x, y }); // initial point 
+    const [locked,setLocked] = useState(0);
+    const moves =[ // possible moving coordinats
+    {X:x-1,Y:y},
+    {X:x,Y:y+1},
+    {X:x+1,Y:y},
+    {X:x,Y:y-1},]
+
+    // useEffect(()=>{
+    // const timeOut = setTimeout(()=>{
+    // console.log('before',locked);
+    // let copyLocked = locked;
+    // let newState = locked === 3 ? 0: copyLocked++;
+    // setLocked(newState);
+    // },2000)
+    // console.log('after',locked);
+    // return ()=>{clearTimeout(timeOut)}
+    // })
+
+    useEffect(() => {
+        const timeOut = setTimeout(() => {
+          setLocked((prevLocked) => {
+            const newState = prevLocked === 3 ? 0 : prevLocked + 1;
+            return newState;
+          });
+        }, 2000);
+        return () => {
+          clearTimeout(timeOut);
+        };
+      }, [locked]);
+
+    //   useMemo(()=>{
+    //     const newMatrix = [...Matrix];
+    //     const {x,y} = initialPosition;
+    //     switch(locked){
+    //         case 0:
+    //         setTimeout(() => {
+    //             if(newMatrix[x-1][y] === 2 || newMatrix[x-1][y] === 0 || newMatrix[x-1][y] === 9 || newMatrix[x-1][y] === 3){
+    //                 newMatrix[x-1][y] = type;
+    //                 newMatrix[x][y] = 2;
+    //                 setInitialPosition({...initialPosition,x:x-1});
+    //                 updateMatrix(newMatrix);
+    //             }
+    //         }, 500);
+    //         break;
+    //         case 1:
+    //             setTimeout(() => {
+    //                 //some code
+    //             }, 500);
+    //         break;
+    //         case 2:
+    //             setTimeout(() => {
+    //                 //some code
+    //             }, 500);
+    //         break;
+    //         case 3:
+    //             setTimeout(() => {
+    //                 //some code
+    //             }, 500);
+    //         break;
+    //         default:break;
+    //     }
+    //   },[locked])
+      
+      useEffect(() => {
+        const newMatrix = [...Matrix];
+        const { x, y } = initialPosition;
+        const handleTimeout = () => {
+          switch (locked) {
+            case 0:
+            if (newMatrix[x - 1][y] === 2 || newMatrix[x - 1][y] === 0 || newMatrix[x - 1][y] === 9 || newMatrix[x - 1][y] === 3) {
+                newMatrix[x - 1][y] = type;
+                newMatrix[x][y] = 2;
+                setInitialPosition({ ...initialPosition, x: x - 1 });
+                updateMatrix(newMatrix);
+            }
+            break;
+            case 1:
+                if(newMatrix[x][y+1] === 2 || newMatrix[x][y+1] === 0 || newMatrix[x][y+1] === 9 || newMatrix[x][y+1] === 3){
+                    newMatrix[x][y+1] = type;
+                    newMatrix[x][y] = 2;
+                    setInitialPosition({...initialPosition,y:y+1});
+                    updateMatrix(newMatrix);
+                }
+            break;
+            case 2:
+                if(newMatrix[x+1][y] === 2 || newMatrix[x+1][y] === 0 || newMatrix[x+1][y] === 9 || newMatrix[x+1][y] === 3 ){
+                    newMatrix[x+1][y] = type;
+                    newMatrix[x][y] = 2;
+                    setInitialPosition({...initialPosition,x:x+1});
+                    updateMatrix(newMatrix);
+                }
+            break;
+            case 3:
+            console.log(locked)
+            break;
+            default:
+            break;
+          }
+        };
+        const timeoutId = setTimeout(handleTimeout, 500);
+        return () => {
+        clearTimeout(timeoutId); 
+        };
+        }, [locked]);
+      
+
+    let src;
+    switch(type){
+        case '4':
+        src = (<img className='ghost' src={sleep} alt='ghost'/>);
+        break;
+        case '5':
+        src = (<img className='ghost' src={red} alt='ghost'/>);
+        break;
+        case '6':
+        src = (<img className='ghost' src={orange} alt='ghost'/>);
+        break;
+        case '7':
+        src = (<img className='ghost' src={pink} alt='ghost'/>);
+        break;
+        case '8':
+        src = (<img className='ghost' src={blue} alt='ghost'/>);
+        break;
+        default:break;
+    }
+    return src
+}
+
+
+
+
+
+
+
+  // const types = [5,6,7,8];
+  
+  // useEffect(()=>{
+  //   const newMatrix = [...Matrix]; //copy matrix to edit mutate it and update the matrix state
+  //   const avilableRoads = []; // array of the avilable next steps
+  //   const interval = setInterval(()=>{ 
+  //     for(let i =0;i<4;i++){ //looping on all the possible roads 
+  //       const {X,Y} = moves[i]; 
+  //       if(newMatrix[X][Y]===2||newMatrix[X][Y]===0){ // if the next step is an empty or food element
+  //         avilableRoads.push(moves[i]); // add the road to the list 
+  //       }
+  //     }
+  //   // console.log(x,y) 
+  //   const {X:Xdir,Y:Ydir} = avilableRoads[randomInt(0,avilableRoads.length-1)];
+  //   // do{
+  //     if(newMatrix[Xdir][Ydir] === 0 || newMatrix[Xdir][Ydir] === 2){
+  //     // keep walking on the same diretion till the ghost face a wall or another ghost 
+  //     }else{
+  //       // error handling
+  //     }
+  //     // const {x,y} = initialPosition;
+  //     // const next = newMatrix[Xdir][Ydir];
+  //     // newMatrix[Xdir][Ydir] = type;
+  //     // newMatrix[x][y] = next;
+  //     // setInitialPosition(Xdir,Ydir);
+  //     // updateMatrix(newMatrix);
+  //   // }while(newMatrix[Xdir][Ydir] === 0 || newMatrix[Xdir][Ydir] === 2)
+  // },8000)
+
+
+    // return ()=>{clearTimeout(timeOut)}
+  // },[])
+
+  // useEffect(()=>{
+    // const newMatrix = [...Matrix];
+    // const {x,y} = initialPosition;
+    // if(type==='6'|| type === '7'){
+    //   console.log(type,newMatrix[moves[1].X][moves[1].Y]);
+    // }
+    // const {X:x0,Y:y0} = moves[0];
+    // const {X:x1,Y:y1} = moves[1];
+    // const {X:x2,Y:y2} = moves[2];
+
+
+  //   const timeout = setTimeout(()=>{
+  //     if(newMatrix[x0][y0]===2||newMatrix[x0][y0]===0){
+  //       const nextElement = newMatrix[x0][y0];
+  //       newMatrix[x0][y0] = type;
+  //       newMatrix[x][y] = nextElement;
+  //       updateMatrix(newMatrix);
+  //       setInitialPosition({x0,y0});
+  //     }else if(newMatrix[x1][y1]===2||newMatrix[x][y1]===0){
+  //       console.log(type,'i am inside the second condition')
+  //       const nextElement = newMatrix[x1][y1];
+  //       newMatrix[x1][y1] = type;
+  //       newMatrix[x][y] = nextElement;
+  //       updateMatrix(newMatrix);
+  //       setInitialPosition({x1,y1});
+  //     }
+  //     else if(newMatrix[x2][y2]===2||newMatrix[x][y2]===0){
+  //       console.log(type,'i am inside the third condition')
+  //       const nextElement = newMatrix[x2][y2];
+  //       newMatrix[x2][y2] = type;
+  //       newMatrix[x][y] = nextElement;
+  //       updateMatrix(newMatrix);
+  //       setInitialPosition({x2,y2});
+  //     }
+  // },200)
+  //   return ()=>{clearTimeout(timeout)}
+  // },[])
+
+
+
+  // const [initialPosition, setInitialPosition] = useState({ x: x, y: y });
+  // const {updateMatrix, Matrix } = useContext(directionContext);
+
+  // // handling random ghosts movement 
+  // function ghostsMovement(){
+  //   const newMatrix = [...Matrix];
+  //   const { x, y } = initialPosition;
+  //   newMatrix[x][y] = 2;
+  //   newMatrix[x - 1][y] = type; 
+  //   updateMatrix(newMatrix)
+  // }
+
+  //   setInterval(()=>{
+  //     // ghostsMovement();
+  //   },2000)
+  
+import red from './red.gif'
+import orange from './orange.gif'
+import pink from './pink.gif'
+import blue from './blue.gif'
+import sleep from './sleep.gif'
+import { useState,useEffect,useContext,useMemo } from 'react'
+import {directionContext} from './directionContext'
+
+export default function TempGhost({type,x,y}){
+    const {Matrix,updateMatrix} = useContext(directionContext); // matrix state passed using context 
+    const [initialPosition, setInitialPosition] = useState({x, y}); // initial point 
+function moveGhost(x,y) {
+  const directions = ['up', 'down', 'left', 'right'];
+  const randomDirection = directions[Math.floor(Math.random() * directions.length)];
+
+  // Calculate the new position based on the random direction
+
+  let {newX,newY} = initialPosition;
+
+  if (randomDirection === 'up') {
+    newX--;
+  } else if (randomDirection === 'down') {
+    newX++;
+  } else if (randomDirection === 'left') {
+    newY--;
+  } else if (randomDirection === 'right') {
+    newY++;
+  }
+  // Check if the new position is valid
+  if (isValidMove(newX, newY)) {
+    // Update the ghost's position in the matrix
+    updateGhostPosition(newX, newY);
+  }
+}
+
+function isValidMove(x, y) {
+  return x === 0 || x === 2 || x===9 || x=== 3 || y === 0 || y === 2 || y===9 || y=== 3;
+}
+
+function updateGhostPosition(x,y){
+    setInitialPosition({x,y});
+
+}
+
+// Periodically move the ghosts
+setInterval(() => {
+const {x,y} = initialPosition;
+    moveGhost(x,y);
+}, 1000);
+
+    let src;
+    switch(type){
+        case '4':
+        src = (<img className='ghost' src={sleep} alt='ghost'/>);
+        break;
+        case '5':
+        src = (<img className='ghost' src={red} alt='ghost'/>);
+        break;
+        case '6':
+        src = (<img className='ghost' src={orange} alt='ghost'/>);
+        break;
+        case '7':
+        src = (<img className='ghost' src={pink} alt='ghost'/>);
+        break;
+        case '8':
+        src = (<img className='ghost' src={blue} alt='ghost'/>);
+        break;
+        default:break;
+    }
+    return src
+}
+import red from './red.gif'
+import orange from './orange.gif'
+import pink from './pink.gif'
+import blue from './blue.gif'
+import sleep from './sleep.gif'
+import { useState,useEffect,useContext } from 'react'
+import {directionContext} from './directionContext'
+
+
+export default function GhostComponent({type,x,y}){
+    x= +x;
+    y= +y;
+    const {Matrix,updateMatrix} = useContext(directionContext); // matrix state passed using context 
+    const [initialPosition, setInitialPosition] = useState({x, y }); // initial point 
+    const [locked,setLocked] = useState(3);
+    const moves =[ // possible moving coordinats
+    {X:x-1,Y:y},
+    {X:x,Y:y+1},
+    {X:x+1,Y:y},
+    {X:x,Y:y-1},
+  ]
+    // function move(newMatrix,position){
+    //     const {x,y} = position;
+    //     // for(let i=0;i<4;){
+    //     if(newMatrix[moves[i].X][moves[i].Y] === 2 || newMatrix[moves[i].X][moves[i].Y] === 0 || newMatrix[moves[i].X][moves[i].Y] === 9 || newMatrix[moves[i].X][moves[i].Y] === 3 ){
+    //         newMatrix[moves[i].X][moves[i].Y] = type;
+    //         newMatrix[x][y] = 2;
+    //         setInitialPosition({...position,x:x-1});
+    //         updateMatrix(newMatrix);
+    //     }else{
+    //         i++;
+    //         console.log('error to ')
+    //     }
+    // // }
+    // }
+    useEffect(()=>{
+        if(locked === 0){
+        const interval = setInterval(()=>{
+            const {x,y} = initialPosition;
+            const newMatrix = [...Matrix];
+            if(newMatrix[x-1][y] === 2 || newMatrix[x-1][y] === 0 || newMatrix[x-1][y] === 9 || newMatrix[x-1][y] === 3 ){
+                setInterval(() => {
+                }, 500);
+                newMatrix[x-1][y] = type;
+                newMatrix[x][y] = 2;
+                setInitialPosition({...initialPosition,x:x-1});
+                updateMatrix(newMatrix);
+            }
+            else if(newMatrix[x][y-1] === 2 || newMatrix[x][y-1] === 0 || newMatrix[x][y-1] === 9 || newMatrix[x][y-1] === 3){
+                newMatrix[x][y-1] = type;
+                newMatrix[x][y] = 2;
+                setInitialPosition({...initialPosition,y:y-1});
+                updateMatrix(newMatrix);
+            }else if(newMatrix[x+1][y] === 2 || newMatrix[x+1][y] === 0 || newMatrix[x+1][y] === 9 || newMatrix[x+1][y] === 3 ){
+                newMatrix[x+1][y] = type;
+                newMatrix[x][y] = 2;
+                setInitialPosition({...initialPosition,x:x+1});
+                updateMatrix(newMatrix);
+            }
+            else if(newMatrix[x][y+1] === 2 || newMatrix[x][y+1] === 0 || newMatrix[x][y+1] === 9 || newMatrix[x][y+1] === 3){
+                newMatrix[x][y+1] = type;
+                newMatrix[x][y] = 2;
+                setInitialPosition({...initialPosition,y:y+1});
+                updateMatrix(newMatrix);
+            }
+            setLocked(1)
+        },500)
+        return ()=>{clearInterval(interval)}
+    }
+    if(locked === 1){
+        const interval = setInterval(()=>{
+            const {x,y} = initialPosition;
+            const newMatrix = [...Matrix];
+            if(newMatrix[x][y-1] === 2 || newMatrix[x][y-1] === 0 || newMatrix[x][y-1] === 9 || newMatrix[x][y-1] === 3){
+                newMatrix[x][y-1] = type;
+                newMatrix[x][y] = 2;
+                setInitialPosition({...initialPosition,y:y-1});
+                updateMatrix(newMatrix);
+            }
+            else if(newMatrix[x-1][y] === 2 || newMatrix[x-1][y] === 0 || newMatrix[x-1][y] === 9 || newMatrix[x-1][y] === 3 ){
+                setInterval(() => {
+                }, 500);
+                newMatrix[x-1][y] = type;
+                newMatrix[x][y] = 2;
+                setInitialPosition({...initialPosition,x:x-1});
+                updateMatrix(newMatrix);
+            }
+            else if(newMatrix[x][y+1] === 2 || newMatrix[x][y+1] === 0 || newMatrix[x][y+1] === 9 || newMatrix[x][y+1] === 3){
+                newMatrix[x][y+1] = type;
+                newMatrix[x][y] = 2;
+                setInitialPosition({...initialPosition,y:y+1});
+                updateMatrix(newMatrix);
+            }else if(newMatrix[x+1][y] === 2 || newMatrix[x+1][y] === 0 || newMatrix[x+1][y] === 9 || newMatrix[x+1][y] === 3 ){
+                newMatrix[x+1][y] = type;
+                newMatrix[x][y] = 2;
+                setInitialPosition({...initialPosition,x:x+1});
+                updateMatrix(newMatrix);
+            }
+            
+            setLocked(2)
+        },500)
+        return ()=>{clearInterval(interval)}
+    }
+    if(locked === 2){
+        const interval = setInterval(()=>{
+            const {x,y} = initialPosition;
+            const newMatrix = [...Matrix];
+            if(newMatrix[x+1][y] === 2 || newMatrix[x+1][y] === 0 || newMatrix[x+1][y] === 9 || newMatrix[x+1][y] === 3 ){
+                newMatrix[x+1][y] = type;
+                newMatrix[x][y] = 2;
+                setInitialPosition({...initialPosition,x:x+1});
+                updateMatrix(newMatrix);
+            }
+            
+            else if(newMatrix[x-1][y] === 2 || newMatrix[x-1][y] === 0 || newMatrix[x-1][y] === 9 || newMatrix[x-1][y] === 3 ){
+                setInterval(() => {
+                }, 500);
+                newMatrix[x-1][y] = type;
+                newMatrix[x][y] = 2;
+                setInitialPosition({...initialPosition,x:x-1});
+                updateMatrix(newMatrix);
+            }
+            else if(newMatrix[x][y+1] === 2 || newMatrix[x][y+1] === 0 || newMatrix[x][y+1] === 9 || newMatrix[x][y+1] === 3){
+                newMatrix[x][y+1] = type;
+                newMatrix[x][y] = 2;
+                setInitialPosition({...initialPosition,y:y+1});
+                updateMatrix(newMatrix);
+            }else if(newMatrix[x][y-1] === 2 || newMatrix[x][y-1] === 0 || newMatrix[x][y-1] === 9 || newMatrix[x][y-1] === 3){
+                newMatrix[x][y-1] = type;
+                newMatrix[x][y] = 2;
+                setInitialPosition({...initialPosition,y:y-1});
+                updateMatrix(newMatrix);
+            }
+            setLocked(3)
+        },500)
+        return ()=>{clearInterval(interval)}
+    }
+    if(locked === 3){
+        const interval = setInterval(()=>{
+            const {x,y} = initialPosition;
+            const newMatrix = [...Matrix];
+            if(newMatrix[x][y+1] === 2 || newMatrix[x][y+1] === 0 || newMatrix[x][y+1] === 9 || newMatrix[x][y+1] === 3){
+                newMatrix[x][y+1] = type;
+                newMatrix[x][y] = 2;
+                setInitialPosition({...initialPosition,y:y+1});
+                updateMatrix(newMatrix);
+            }
+            else if(newMatrix[x+1][y] === 2 || newMatrix[x+1][y] === 0 || newMatrix[x+1][y] === 9 || newMatrix[x+1][y] === 3 ){
+                newMatrix[x+1][y] = type;
+                newMatrix[x][y] = 2;
+                setInitialPosition({...initialPosition,x:x+1});
+                updateMatrix(newMatrix);
+            }
+            else if(newMatrix[x-1][y] === 2 || newMatrix[x-1][y] === 0 || newMatrix[x-1][y] === 9 || newMatrix[x-1][y] === 3 ){
+                setInterval(() => {
+                }, 500);
+                newMatrix[x-1][y] = type;
+                newMatrix[x][y] = 2;
+                setInitialPosition({...initialPosition,x:x-1});
+                updateMatrix(newMatrix);
+            }
+            else if(newMatrix[x][y-1] === 2 || newMatrix[x][y-1] === 0 || newMatrix[x][y-1] === 9 || newMatrix[x][y-1] === 3){
+                newMatrix[x][y-1] = type;
+                newMatrix[x][y] = 2;
+                setInitialPosition({...initialPosition,y:y-1});
+                updateMatrix(newMatrix);
+            }
+            setLocked(0)
+        },500)
+        return ()=>{clearInterval(interval)}
+    }
+    })
+      let src;
+      switch(type){
+        case '4':
+          src = (<img className='ghost' src={sleep} alt='ghost'/>);
+          break;
+          case '5':
+          src = (<img className='ghost' src={red} alt='ghost'/>);
+          break;
+          case '6':
+          src = (<img className='ghost' src={orange} alt='ghost'/>);
+          break;
+          case '7':
+          src = (<img className='ghost' src={pink} alt='ghost'/>);
+          break;
+          case '8':
+          src = (<img className='ghost' src={blue} alt='ghost'/>);
+          break;
+          default:break;
+      }
+      return src
+  }
